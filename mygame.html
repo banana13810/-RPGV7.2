@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>塔RPG Ver7.2</title>
+<title>塔RPG Ver7.3（オート進行）</title>
 <style>
 body{font-family:sans-serif;text-align:center;background:#111;color:white;margin:0;padding:0;}
 .game{max-width:480px;margin:auto;padding:10px;}
@@ -17,7 +17,7 @@ button{margin:3px;padding:10px;font-size:16px;border-radius:6px;}
 </head>
 <body>
 <div class="game">
-<h1>🏯塔RPG Ver7.2</h1>
+<h1>🏯塔RPG Ver7.3（オート進行）</h1>
 
 <!-- 敵表示を上に -->
 <h3 id="enemy"></h3>
@@ -35,7 +35,6 @@ button{margin:3px;padding:10px;font-size:16px;border-radius:6px;}
 <div>💰 <span id="gold"></span></div>
 
 <button onclick="attack()">⚔攻撃</button>
-<button id="nextBtn" onclick="nextFloor()" style="display:none;">次の階へ</button>
 
 <hr>
 <h3>🎒装備</h3>
@@ -84,7 +83,8 @@ function attack(){
     gold+=10+floor;
     exp+=5;
     dropItem();
-    document.getElementById("nextBtn").style.display="block";
+    // 自動で次の階に進む
+    setTimeout(nextFloor, 500);
   }
   enemyAttack();
   levelUp();
@@ -93,6 +93,7 @@ function attack(){
 
 // 敵攻撃
 function enemyAttack(){
+  if(enemyHP<=0)return; // 敵が死んだら攻撃しない
   let dmg=5-defense;if(dmg<1)dmg=1;
   playerHP-=dmg;
   if(playerHP<=0){alert("ゲームオーバー");location.reload();}
@@ -108,10 +109,9 @@ function levelUp(){
 function dropItem(){
   if(Math.random()>0.6)return;
   let types=["weapon","armor","ring"];
-  let rarity=randomRarity();
   let names=["剣","斧","弓","杖","鎧","指輪"];
   let itemName=names[Math.floor(Math.random()*names.length)];
-  let item={name:itemName,type:types[Math.floor(Math.random()*3)],attack:Math.floor(Math.random()*10)+5,def:Math.floor(Math.random()*5),level:1,maxLevel:5,rarity:rarity};
+  let item={name:itemName,type:types[Math.floor(Math.random()*3)],attack:Math.floor(Math.random()*10)+5,def:Math.floor(Math.random()*5),level:1,maxLevel:5,rarity:randomRarity()};
   inventory.push(item);
   drawInventory();
 }
@@ -143,7 +143,7 @@ function upgradeItem(i){let item=inventory[i];if(item.level>=item.maxLevel){aler
 // 合成
 function fuseItem(i){let item=inventory[i];for(let j=0;j<inventory.length;j++){if(i!=j && inventory[j].name==item.name){item.maxLevel+=5;inventory.splice(j,1);alert("合成成功!");drawInventory();return;}}alert("同じ装備が必要");}
 
-// レア合成（自動装備対応）
+// レア合成
 function rarityFuse(i){
   let item=inventory[i];if(item.level<10){alert("Lv10以上必要");return;}
   let same=[];for(let j=0;j<inventory.length;j++){if(inventory[j].name==item.name&&inventory[j].rarity==item.rarity&&inventory[j].level>=10)same.push(j);}
@@ -172,7 +172,7 @@ function sortAttack(){inventory.sort((a,b)=>b.attack-a.attack);drawInventory();}
 function sortRarity(){inventory.sort((a,b)=>rarityOrder[b.rarity]-rarityOrder[a.rarity]);drawInventory();}
 
 // 次の階
-function nextFloor(){floor++;spawnEnemy();document.getElementById("nextBtn").style.display="none";update();}
+function nextFloor(){floor++;spawnEnemy();update();}
 
 // 更新
 function update(){
