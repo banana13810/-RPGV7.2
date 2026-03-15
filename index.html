@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>塔RPG Ver7.3（オート進行）</title>
+<title>塔RPG Ver7.4（オート進行＆ログ制限）</title>
 <style>
 body{font-family:sans-serif;text-align:center;background:#111;color:white;margin:0;padding:0;}
 .game{max-width:480px;margin:auto;padding:10px;}
@@ -17,16 +17,14 @@ button{margin:3px;padding:10px;font-size:16px;border-radius:6px;}
 </head>
 <body>
 <div class="game">
-<h1>🏯塔RPG Ver7.3（オート進行）</h1>
+<h1>🏯塔RPG Ver7.4</h1>
 
-<!-- 敵表示を上に -->
 <h3 id="enemy"></h3>
 <div class="bar"><div id="enemybar" class="enemyBar"></div></div>
 <div id="enemyHP"></div>
 
 <hr>
 
-<!-- プレイヤー表示を下に -->
 <div>階層 <span id="floor"></span></div>
 <div class="bar"><div id="hpbar" class="barInner"></div></div>
 <div>HP <span id="hp"></span></div>
@@ -59,7 +57,16 @@ let playerMax=100, playerHP=100, attackPower=5, defense=2, gold=0;
 let enemyHP=20, enemyMax=20, enemy="スライム";
 let inventory=[], equipment={weapon:null,armor:null,ring:null};
 let rarityList=["common","rare","epic","legend","mythic"], rarityOrder={common:1,rare:2,epic:3,legend:4,mythic:5};
+
 let logBox=document.getElementById("log");
+let logHistory=[]; // 最新5件ログ管理
+
+// ログ関数（最新5件まで）
+function log(text){
+    logHistory.unshift(text);
+    if(logHistory.length>5) logHistory.pop();
+    logBox.innerHTML = logHistory.join("<br>");
+}
 
 // 敵生成
 function spawnEnemy(){
@@ -84,7 +91,7 @@ function attack(){
     exp+=5;
     dropItem();
     // 自動で次の階に進む
-    setTimeout(nextFloor, 500);
+    setTimeout(nextFloor,500);
   }
   enemyAttack();
   levelUp();
@@ -93,7 +100,7 @@ function attack(){
 
 // 敵攻撃
 function enemyAttack(){
-  if(enemyHP<=0)return; // 敵が死んだら攻撃しない
+  if(enemyHP<=0)return;
   let dmg=5-defense;if(dmg<1)dmg=1;
   playerHP-=dmg;
   if(playerHP<=0){alert("ゲームオーバー");location.reload();}
@@ -185,9 +192,6 @@ document.getElementById("enemyHP").innerText=enemyHP+"/"+enemyMax;
 document.getElementById("hpbar").style.width=(playerHP/playerMax*100)+"%";
 document.getElementById("enemybar").style.width=(enemyHP/enemyMax*100)+"%";
 }
-
-// ログ
-function log(text){logBox.innerHTML=text+"<br>"+logBox.innerHTML;}
 
 // セーブ
 function saveGame(){localStorage.setItem("towerSave",JSON.stringify({floor, level, gold, attackPower, playerMax, playerHP, inventory, equipment}));alert("ゲームをセーブしました！");}
